@@ -35,9 +35,17 @@ interface ApiKeyMetadata {
 }
 
 interface GenerateKeyResult {
-  apiKey: string;
+  rawKey: string;
   keyPrefix: string;
   createdAt: string;
+  message?: string;
+}
+
+interface RotateKeyResult {
+  rawKey: string;
+  keyPrefix: string;
+  rotatedAt: string;
+  message?: string;
 }
 
 export const ApiKeyPage: React.FC = () => {
@@ -60,7 +68,7 @@ export const ApiKeyPage: React.FC = () => {
   const generateMutation = useMutation({
     mutationFn: () => apiClient<GenerateKeyResult>('/api/api-key/generate', { method: 'POST' }),
     onSuccess: (res) => {
-      setOneTimeRawKey(res.data!.apiKey);
+      setOneTimeRawKey(res.data!.rawKey);
       toast.success('API Key berhasil dibuat!');
       queryClient.invalidateQueries({ queryKey: ['api-key-metadata'] });
       queryClient.invalidateQueries({ queryKey: ['auth-me'] });
@@ -72,9 +80,9 @@ export const ApiKeyPage: React.FC = () => {
 
   // Rotate Mutation
   const rotateMutation = useMutation({
-    mutationFn: () => apiClient<GenerateKeyResult>('/api/api-key/rotate', { method: 'POST' }),
+    mutationFn: () => apiClient<RotateKeyResult>('/api/api-key/rotate', { method: 'POST' }),
     onSuccess: (res) => {
-      setOneTimeRawKey(res.data!.apiKey);
+      setOneTimeRawKey(res.data!.rawKey);
       setRotateConfirmOpen(false);
       toast.success('API Key berhasil dirotasi!');
       queryClient.invalidateQueries({ queryKey: ['api-key-metadata'] });
