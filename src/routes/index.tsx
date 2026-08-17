@@ -11,6 +11,9 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 
+// Documentation Page (OpenAPI + Scalar)
+import { ApiDocsPage } from '@/pages/docs/ApiDocsPage';
+
 // User Dashboard Pages
 import { OverviewPage } from '@/pages/dashboard/OverviewPage';
 import { TransactionsPage } from '@/pages/transactions/TransactionsPage';
@@ -130,6 +133,9 @@ const RequireGuest: React.FC = () => {
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
+      {/* Public Documentation Route */}
+      <Route path="/docs" element={<ApiDocsPage />} />
+
       {/* Public / Guest Routes */}
       <Route element={<RequireGuest />}>
         <Route path="/login" element={<LoginPage />} />

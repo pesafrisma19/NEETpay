@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   KeyRound,
@@ -9,6 +10,8 @@ import {
   Code,
   Terminal,
   PlusCircle,
+  BookOpen,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
@@ -144,16 +147,30 @@ console.log('Dynamic QRIS:', data.data.qrisUrl);`;
             Gunakan Secret API Key ini untuk mengintegrasikan backend toko online Anda dengan NeetPay REST API.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="text-xs gap-1.5 h-9 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-          <span>Segarkan</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="text-xs gap-1.5 h-9"
+          >
+            <Link to="/docs" target="_blank" rel="noopener noreferrer">
+              <BookOpen className="w-3.5 h-3.5 text-primary" />
+              <span>Scalar API Docs</span>
+              <ExternalLink className="w-3 h-3 opacity-60" />
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="text-xs gap-1.5 h-9"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+            <span>Segarkan</span>
+          </Button>
+        </div>
       </div>
 
       {/* Main Key Info Card */}
@@ -244,16 +261,25 @@ console.log('Dynamic QRIS:', data.data.qrisUrl);`;
 
       {/* Integration Guide Snippet Card */}
       <Card className="border-border/80 bg-card shadow-xs">
-        <CardHeader className="p-5 pb-3 border-b border-border/60">
-          <div className="flex items-center gap-2">
-            <Code className="w-4 h-4 text-primary" />
-            <CardTitle className="text-base font-bold text-foreground">
-              Integrasi Cepat (Quick Integration)
-            </CardTitle>
+        <CardHeader className="p-5 pb-3 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <Code className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base font-bold text-foreground">
+                Integrasi Cepat (Quick Integration)
+              </CardTitle>
+            </div>
+            <CardDescription className="text-xs text-muted-foreground mt-0.5">
+              Gunakan format header <code>Authorization: Bearer np_live_...</code> saat memanggil endpoint transaksi.
+            </CardDescription>
           </div>
-          <CardDescription className="text-xs text-muted-foreground">
-            Gunakan format header <code>Authorization: Bearer np_live_...</code> saat memanggil endpoint transaksi.
-          </CardDescription>
+          <Button variant="outline" size="sm" asChild className="text-xs h-8 gap-1.5 self-start sm:self-auto border-primary/30 text-primary hover:bg-primary/10">
+            <Link to="/docs" target="_blank" rel="noopener noreferrer">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Scalar API Docs</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </Link>
+          </Button>
         </CardHeader>
         <CardContent className="p-5">
           <Tabs defaultValue="curl" className="space-y-3">

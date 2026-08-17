@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   ShieldAlert,
   ChevronRight,
+  BookOpen,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { cn } from '@/lib/utils';
@@ -86,6 +88,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
             </NavLink>
           );
         })}
+
+        {/* Developer Documentation Link */}
+        <div className="pt-3 mt-2 border-t border-border/50 space-y-1">
+          <div className="px-3 mb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+            Developer
+          </div>
+          <NavLink
+            to="/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-muted-foreground hover:text-foreground hover:bg-muted/60 group"
+          >
+            <BookOpen className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            <span className="flex-1">API Docs</span>
+            <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+          </NavLink>
+        </div>
 
         {/* Admin Center Button (ONLY visible if user has ADMIN role) */}
         {user?.role === 'ADMIN' && (
