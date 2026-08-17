@@ -10,6 +10,7 @@ import {
   User,
   LogOut,
   ShieldCheck,
+  ShieldAlert,
   ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
@@ -85,6 +86,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
             </NavLink>
           );
         })}
+
+        {/* Admin Center Button (ONLY visible if user has ADMIN role) */}
+        {user?.role === 'ADMIN' && (
+          <div className="pt-4 mt-2 border-t border-border/60 space-y-1">
+            <div className="px-3 mb-2 text-[11px] font-semibold text-red-600 uppercase tracking-wider flex items-center justify-between">
+              <span>Administrator</span>
+              <Badge variant="destructive" className="text-[9px] px-1.5 py-0 font-bold">ADMIN</Badge>
+            </div>
+            <NavLink
+              to="/admin"
+              onClick={onNavClick}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 group bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20 shadow-xs"
+            >
+              <ShieldAlert className="w-4 h-4 shrink-0 text-red-600" />
+              <span className="flex-1">Admin Dashboard</span>
+              <ChevronRight className="w-3.5 h-3.5 opacity-80" />
+            </NavLink>
+          </div>
+        )}
       </div>
 
       {/* User Footer Profile & Logout */}

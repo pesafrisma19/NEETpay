@@ -19,6 +19,16 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+interface LoginResponse {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    status: string;
+  };
+}
+
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { refetchUser } = useAuth();
@@ -35,14 +45,20 @@ export const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
-      await apiClient('/api/auth/login', {
+      const res = await apiClient<LoginResponse>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),
       });
 
       toast.success('Login berhasil. Selamat datang kembali!');
-      refetchUser();
-      navigate('/dashboard');
+      await refetchUser();
+
+      // Redirect directly to /admin if ADMIN role, else /dashboard
+      if (res.data?.user?.role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Gagal login. Periksa kembali email dan password Anda.');
     } finally {

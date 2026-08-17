@@ -104,7 +104,7 @@ const RequireAdmin: React.FC = () => {
  * Route guard for guest only pages (e.g. Login, Register)
  */
 const RequireGuest: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -118,6 +118,9 @@ const RequireGuest: React.FC = () => {
   }
 
   if (isAuthenticated) {
+    if (user?.role === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
