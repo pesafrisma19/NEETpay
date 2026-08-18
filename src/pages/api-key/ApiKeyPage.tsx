@@ -110,32 +110,65 @@ export const ApiKeyPage: React.FC = () => {
     setTimeout(() => setCopiedSnippet(null), 2000);
   };
 
-  const curlSnippet = `curl -X POST https://api.neetpay.web.id/v1/transactions \\
-  -H "Authorization: Bearer ${keyInfo?.keyPrefix || 'np_live_xxxx'}..." \\
+  const curlSnippet = `# STEP 1 — Ambil Daftar Payment Channels
+curl https://api.neetpay.web.id/v1/payment-channels \\
+  -H "Authorization: Bearer YOUR_NEETPAY_API_KEY"
+
+# Response Contoh:
+# {
+#   "success": true,
+#   "data": [
+#     {
+#       "id": "cms_xxxxx",
+#       "name": "QRIS Utama",
+#       "method": "QRIS",
+#       "provider": "GOBIZ"
+#     }
+#   ]
+# }
+
+# STEP 2 — Buat Dynamic QRIS Transaksi
+# (id dari Step 1 digunakan sebagai paymentAccountId. Bersifat opsional)
+curl -X POST https://api.neetpay.web.id/v1/transactions \\
+  -H "Authorization: Bearer YOUR_NEETPAY_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "orderId": "INV-2026-001",
     "amount": 25000,
+    "paymentAccountId": "cms_xxxxx",
     "customerName": "John Doe",
     "customerEmail": "customer@example.com"
   }'`;
 
-  const nodeSnippet = `const response = await fetch('https://api.neetpay.web.id/v1/transactions', {
+  const nodeSnippet = `// STEP 1 — Ambil Daftar Payment Channels
+const channelsRes = await fetch('https://api.neetpay.web.id/v1/payment-channels', {
+  headers: {
+    'Authorization': 'Bearer YOUR_NEETPAY_API_KEY'
+  }
+});
+const { data: channels } = await channelsRes.json();
+console.log('Available Channels:', channels);
+// Contoh: [{ id: "cms_xxxxx", name: "QRIS Utama", method: "QRIS", provider: "GOBIZ" }]
+
+// STEP 2 — Buat Dynamic QRIS Transaksi
+// paymentAccountId bersifat opsional. Jika tidak diisi, akun default aktif akan digunakan.
+const response = await fetch('https://api.neetpay.web.id/v1/transactions', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer ${keyInfo?.keyPrefix || 'np_live_xxxx'}...',
+    'Authorization': 'Bearer YOUR_NEETPAY_API_KEY',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
     orderId: 'INV-2026-001',
     amount: 25000,
+    paymentAccountId: channels[0]?.id, // id channel dari Step 1 (opsional)
     customerName: 'John Doe',
     customerEmail: 'customer@example.com'
   })
 });
 
 const data = await response.json();
-console.log('Dynamic QRIS:', data.data.qrisUrl);`;
+console.log('Dynamic QRIS String:', data.data.qr_string);`;
 
   return (
     <div className="space-y-6">
@@ -266,11 +299,11 @@ console.log('Dynamic QRIS:', data.data.qrisUrl);`;
             <div className="flex items-center gap-2">
               <Code className="w-4 h-4 text-primary" />
               <CardTitle className="text-base font-bold text-foreground">
-                Integrasi Cepat (Quick Integration)
+                Integrasi Cepat (Quick Integration — 2 Steps)
               </CardTitle>
             </div>
             <CardDescription className="text-xs text-muted-foreground mt-0.5">
-              Gunakan format header <code>Authorization: Bearer np_live_...</code> saat memanggil endpoint transaksi.
+              Gunakan header <code>Authorization: Bearer YOUR_NEETPAY_API_KEY</code> pada setiap request.
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" asChild className="text-xs h-8 gap-1.5 self-start sm:self-auto border-primary/30 text-primary hover:bg-primary/10">
@@ -281,8 +314,23 @@ console.log('Dynamic QRIS:', data.data.qrisUrl);`;
             </Link>
           </Button>
         </CardHeader>
-        <CardContent className="p-5">
-          <Tabs defaultValue="curl" className="space-y-3">
+        <CardContent className="p-5 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+              <span className="font-bold text-foreground block">STEP 1: Get Payment Channels</span>
+              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                Panggil <code>GET /v1/payment-channels</code> untuk mendapatkan daftar channel aktif. Nilai <code>id</code> (misal: <em>cms_xxxxx</em>) digunakan sebagai <code>paymentAccountId</code>.
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+              <span className="font-bold text-foreground block">STEP 2: Create Transaction</span>
+              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                Kirim <code>POST /v1/transactions</code> dengan parameter <code>paymentAccountId</code>. Jika parameter tidak diisi, sistem otomatis memilih akun GoBiz default.
+              </p>
+            </div>
+          </div>
+
+          <Tabs defaultValue="curl" className="space-y-3 pt-2">
             <TabsList className="grid grid-cols-2 h-9 bg-muted/60 max-w-xs">
               <TabsTrigger value="curl" className="text-xs font-semibold gap-1.5">
                 <Terminal className="w-3.5 h-3.5" />
