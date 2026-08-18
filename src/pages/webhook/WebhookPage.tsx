@@ -35,10 +35,18 @@ import {
 } from '@/components/ui/dialog';
 
 interface WebhookConfigData {
+  id?: string;
   url: string;
   isEnabled: boolean;
   events: string[];
-  secretKeyMasked: string;
+  secretMasked?: string;
+  secretKeyMasked?: string;
+  secret?: string;
+}
+
+interface RotateWebhookSecretResult {
+  secret: string;
+  maskedSecret: string;
 }
 
 interface WebhookDeliveryItem {
@@ -127,14 +135,17 @@ export const WebhookPage: React.FC = () => {
   // Update Config Mutation
   const updateConfigMutation = useMutation({
     mutationFn: (data: WebhookFormData) =>
-      apiClient('/api/webhook', {
+      apiClient<WebhookConfigData>('/api/webhook', {
         method: 'PUT',
         body: JSON.stringify({
           url: data.url.trim(),
           isEnabled: data.isEnabled,
         }),
       }),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      if (res.data?.secret) {
+        setRotatedSecretRaw(res.data.secret);
+      }
       toast.success('Konfigurasi webhook berhasil disimpan!');
       queryClient.invalidateQueries({ queryKey: ['webhook-config'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
@@ -146,9 +157,12 @@ export const WebhookPage: React.FC = () => {
 
   // Rotate Secret Mutation
   const rotateSecretMutation = useMutation({
-    mutationFn: () => apiClient<{ secretKey: string; message: string }>('/api/webhook/rotate-secret', { method: 'POST' }),
+    mutationFn: () =>
+      apiClient<RotateWebhookSecretResult>('/api/webhook/rotate-secret', { method: 'POST' }),
     onSuccess: (res) => {
-      setRotatedSecretRaw(res.data!.secretKey);
+      if (res.data?.secret) {
+        setRotatedSecretRaw(res.data.secret);
+      }
       setRotateConfirmOpen(false);
       toast.success('Secret webhook berhasil dirotasi!');
       queryClient.invalidateQueries({ queryKey: ['webhook-config'] });
@@ -174,12 +188,13 @@ export const WebhookPage: React.FC = () => {
   const handleCopySecret = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedSecret(true);
-    toast.success('Secret key disalin ke clipboard!');
+    toast.success('Webhook Secret berhasil disalin!');
     setTimeout(() => setCopiedSecret(false), 2000);
   };
 
   const deliveries = deliveriesData?.items || [];
   const pagination = deliveriesData?.pagination || { page: 1, total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false };
+  const maskedSecretDisplay = config?.secretMasked || config?.secretKeyMasked || 'whsec_••••••••••••';
 
   return (
     <div className="space-y-6">
@@ -263,12 +278,12 @@ export const WebhookPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5 pt-2 border-t border-border/40">
-                <span className="text-xs font-semibold text-muted-foreground">Webhook Secret Key</span>
+                <span className="text-xs font-semibold text-muted-foreground">Webhook Signing Secret</span>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 p-2 rounded-lg bg-muted/50 border border-border/60 font-mono text-xs text-foreground font-semibold flex items-center justify-between">
-                    <span>{config?.secretKeyMasked || 'whsec_••••••••••••'}</span>
+                  <div className="flex-1 p-2.5 rounded-lg bg-muted/50 border border-border/60 font-mono text-xs text-foreground font-semibold flex items-center justify-between">
+                    <span>{maskedSecretDisplay}</span>
                     <span className="text-[10px] text-muted-foreground font-sans font-medium uppercase">
-                      HMAC Secret
+                      Masked for Security
                     </span>
                   </div>
                   <Button
@@ -505,16 +520,16 @@ export const WebhookPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* One-Time Rotated Secret Modal */}
+      {/* One-Time Webhook Secret Modal (Identical to API Key Page) */}
       <Dialog open={!!rotatedSecretRaw} onOpenChange={(open) => !open && setRotatedSecretRaw(null)}>
-        <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogContent className="sm:max-w-lg bg-card border-border">
           <DialogHeader>
             <div className="flex items-center gap-2 text-primary mb-1">
               <ShieldCheck className="w-5 h-5 text-primary" />
-              <DialogTitle className="text-base font-bold">Secret Webhook Baru</DialogTitle>
+              <DialogTitle className="text-base font-bold">Webhook Secret Baru</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Simpan Secret Key ini di file environment backend Anda. Kunci ini hanya ditampilkan sekali untuk keamanan.
+              Simpan secret ini di file environment backend Anda sekarang. Secret ini hanya ditampilkan sekali dan tidak akan dapat dilihat kembali setelah jendela ini ditutup.
             </DialogDescription>
           </DialogHeader>
 
@@ -528,13 +543,13 @@ export const WebhookPage: React.FC = () => {
               className="h-8 px-3 text-xs font-semibold shrink-0 gap-1.5"
             >
               {copiedSecret ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedSecret ? 'Tersalin' : 'Salin'}</span>
+              <span>{copiedSecret ? 'Tersalin' : 'Salin Secret'}</span>
             </Button>
           </div>
 
           <DialogFooter className="pt-2">
             <Button onClick={() => setRotatedSecretRaw(null)} className="w-full text-xs font-semibold">
-              Saya Sudah Menyimpan Secret
+              Saya Telah Menyimpan Secret Ini
             </Button>
           </DialogFooter>
         </DialogContent>
