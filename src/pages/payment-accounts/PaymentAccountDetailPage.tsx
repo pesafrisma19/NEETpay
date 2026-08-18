@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -37,6 +38,7 @@ interface PaymentAccountDetailData {
   name: string;
   status: 'ACTIVE' | 'NEEDS_REAUTH' | 'INACTIVE' | string;
   isActive: boolean;
+  useUniqueCode: boolean;
   provider: string;
   providerName: string;
   customMinAmount: number | null;
@@ -77,6 +79,7 @@ interface PaymentAccountDetailData {
 
 const settingsSchema = z.object({
   name: z.string().min(1, 'Nama akun harus diisi').max(100),
+  useUniqueCode: z.boolean().default(true),
   customMinAmount: z.string().optional(),
   customMaxAmount: z.string().optional(),
   feeType: z.enum(['NONE', 'FLAT', 'PERCENT']),
@@ -110,6 +113,8 @@ export const PaymentAccountDetailPage: React.FC = () => {
   } = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
+      name: '',
+      useUniqueCode: true,
       feeType: 'NONE',
       feeValue: '0',
     },
@@ -120,6 +125,7 @@ export const PaymentAccountDetailPage: React.FC = () => {
   useEffect(() => {
     if (account) {
       setValue('name', account.name);
+      setValue('useUniqueCode', account.useUniqueCode !== false);
       setValue('customMinAmount', account.customMinAmount ? account.customMinAmount.toString() : '');
       setValue('customMaxAmount', account.customMaxAmount ? account.customMaxAmount.toString() : '');
       setValue('feeType', account.feeRule.type);
@@ -149,6 +155,7 @@ export const PaymentAccountDetailPage: React.FC = () => {
         method: 'PATCH',
         body: JSON.stringify({
           name: data.name,
+          useUniqueCode: data.useUniqueCode,
           customMinAmount: min,
           customMaxAmount: max,
           feeType: data.feeType,
@@ -396,6 +403,33 @@ export const PaymentAccountDetailPage: React.FC = () => {
                     Nama ini akan muncul pada response <code>GET /v1/payment-channels</code> sebagai pilihan metode pembayaran untuk pembeli.
                   </p>
                   {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                </div>
+
+                <div className="space-y-2.5 pt-2 border-t border-border/40">
+                  <div className="flex items-center justify-between p-3.5 rounded-lg bg-muted/30 border border-border/60">
+                    <div className="space-y-0.5 pr-4">
+                      <Label htmlFor="use-unique-code" className="text-xs font-semibold text-foreground cursor-pointer">
+                        Kode Unik Pembayaran
+                      </Label>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        Tambahkan nominal unik untuk membantu pencocokan pembayaran.
+                      </p>
+                    </div>
+                    <Switch
+                      id="use-unique-code"
+                      checked={watch('useUniqueCode')}
+                      onCheckedChange={(checked) => setValue('useUniqueCode', checked)}
+                    />
+                  </div>
+
+                  {!watch('useUniqueCode') && (
+                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-600 dark:text-amber-400">
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                      <div className="leading-relaxed text-[11px]">
+                        Kode unik NeetPay dinonaktifkan. Pastikan website/aplikasi Anda sudah mengatur kode unik sendiri untuk membantu membedakan pembayaran dengan nominal yang sama.
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border/40">

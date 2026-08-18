@@ -128,7 +128,7 @@ curl https://api.neetpay.web.id/v1/payment-channels \\
 # }
 
 # STEP 2 — Buat Dynamic QRIS Transaksi
-# (paymentAccountId dan useUniqueCode bersifat opsional. useUniqueCode default true)
+# (id dari Step 1 digunakan sebagai paymentAccountId. Bersifat opsional)
 curl -X POST https://api.neetpay.web.id/v1/transactions \\
   -H "Authorization: Bearer YOUR_NEETPAY_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -136,7 +136,6 @@ curl -X POST https://api.neetpay.web.id/v1/transactions \\
     "orderId": "INV-2026-001",
     "amount": 25000,
     "paymentAccountId": "cms_xxxxx",
-    "useUniqueCode": true,
     "customerName": "John Doe",
     "customerEmail": "customer@example.com"
   }'`;
@@ -152,7 +151,7 @@ console.log('Available Channels:', channels);
 // Contoh: [{ id: "cms_xxxxx", name: "QRIS Utama", method: "QRIS", provider: "GOBIZ" }]
 
 // STEP 2 — Buat Dynamic QRIS Transaksi
-// useUniqueCode: true = unique code aktif (+1..+999), false = tanpa unique code (default: true).
+// paymentAccountId bersifat opsional. Jika tidak diisi, akun default aktif akan digunakan.
 const response = await fetch('https://api.neetpay.web.id/v1/transactions', {
   method: 'POST',
   headers: {
@@ -163,7 +162,6 @@ const response = await fetch('https://api.neetpay.web.id/v1/transactions', {
     orderId: 'INV-2026-001',
     amount: 25000,
     paymentAccountId: channels[0]?.id, // id channel dari Step 1 (opsional)
-    useUniqueCode: true, // opsional: true (default) atau false
     customerName: 'John Doe',
     customerEmail: 'customer@example.com'
   })
@@ -327,7 +325,7 @@ console.log('Dynamic QRIS String:', data.data.qr_string);`;
             <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
               <span className="font-bold text-foreground block">STEP 2: Create Transaction</span>
               <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                Kirim <code>POST /v1/transactions</code>. Gunakan <code>useUniqueCode: true</code> (default, +1..+999 kode unik) atau <code>false</code> (tanpa kode unik).
+                Kirim <code>POST /v1/transactions</code> dengan parameter <code>paymentAccountId</code>. Jika parameter tidak diisi, sistem otomatis memilih akun GoBiz default.
               </p>
             </div>
           </div>
