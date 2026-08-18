@@ -390,8 +390,11 @@ export const PaymentAccountDetailPage: React.FC = () => {
             <CardContent className="p-5">
               <form onSubmit={handleSubmit((data) => updateMutation.mutate(data))} className="space-y-5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="acc-name" className="text-xs font-semibold">Nama Label Akun</Label>
-                  <Input id="acc-name" className="text-xs" {...register('name')} />
+                  <Label htmlFor="acc-name" className="text-xs font-semibold">Nama Tampilan Channel (Display Name)</Label>
+                  <Input id="acc-name" className="text-xs" {...register('name')} placeholder="Contoh: QRIS Utama" />
+                  <p className="text-[10px] text-muted-foreground">
+                    Nama ini akan muncul pada response <code>GET /v1/payment-channels</code> sebagai pilihan metode pembayaran untuk pembeli.
+                  </p>
                   {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
                 </div>
 

@@ -10,6 +10,9 @@ import {
   AlertTriangle,
   Settings,
   Trash2,
+  Edit2,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
@@ -17,6 +20,8 @@ import { useAuth } from '@/lib/auth-context';
 import { ConnectGoBizModal } from './ConnectGoBizModal';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -57,6 +62,9 @@ export const PaymentAccountsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [disconnectTarget, setDisconnectTarget] = useState<PaymentAccountItem | null>(null);
+  const [renameTarget, setRenameTarget] = useState<PaymentAccountItem | null>(null);
+  const [newNameInput, setNewNameInput] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const plan = user?.subscription?.plan || {
     code: 'FREE',
@@ -75,6 +83,31 @@ export const PaymentAccountsPage: React.FC = () => {
 
   const activeAccounts = (accounts || []).filter((a) => a.status !== 'INACTIVE');
   const isLimitReached = activeAccounts.length >= plan.paymentAccountLimit;
+
+  // Copy Channel ID Helper
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    toast.success('Payment Account ID berhasil disalin.');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Rename Display Name Mutation
+  const renameMutation = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      apiClient(`/api/payment-accounts/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name: name.trim() }),
+      }),
+    onSuccess: () => {
+      toast.success('Nama tampilan channel berhasil diperbarui.');
+      setRenameTarget(null);
+      queryClient.invalidateQueries({ queryKey: ['payment-accounts-list'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Gagal mengubah nama channel.');
+    },
+  });
 
   // Resync QRIS Mutation
   const resyncMutation = useMutation({
@@ -104,14 +137,24 @@ export const PaymentAccountsPage: React.FC = () => {
     },
   });
 
+  const handleOpenRename = (acc: PaymentAccountItem) => {
+    setRenameTarget(acc);
+    setNewNameInput(acc.name);
+  };
+
+  const handleSaveRename = () => {
+    if (!renameTarget || !newNameInput.trim()) return;
+    renameMutation.mutate({ id: renameTarget.id, name: newNameInput.trim() });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header & Limits Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-foreground tracking-tight">Payment Accounts</h2>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">Payment Accounts & Channels</h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Kelola koneksi GoBiz merchant untuk settlement QRIS otomatis.
+            Kelola koneksi GoBiz merchant dan nama tampilan channel untuk integrasi API.
           </p>
         </div>
 
@@ -213,25 +256,58 @@ export const PaymentAccountsPage: React.FC = () => {
                 <CardHeader className="p-5 pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                         <Store className="w-5 h-5" />
                       </div>
-                      <div>
-                        <CardTitle className="text-base font-bold text-foreground">
-                          {acc.goBiz?.outletName || acc.name}
-                        </CardTitle>
-                        <CardDescription className="text-xs text-muted-foreground">
-                          {acc.goBiz?.merchantName || 'GoBiz Merchant'}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-base font-bold text-foreground truncate">
+                            {acc.name}
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenRename(acc)}
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            title="Ubah nama channel"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        <CardDescription className="text-xs text-muted-foreground truncate mt-0.5">
+                          GoBiz Outlet: {acc.goBiz?.outletName || acc.providerName}
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge variant={isConnected ? 'paid' : isReauth ? 'pending' : 'expired'} className="text-[11px] font-bold">
+                    <Badge variant={isConnected ? 'paid' : isReauth ? 'pending' : 'expired'} className="text-[11px] font-bold shrink-0">
                       {isConnected ? 'CONNECTED' : isReauth ? 'NEEDS REAUTH' : 'DISCONNECTED'}
                     </Badge>
                   </div>
                 </CardHeader>
 
                 <CardContent className="p-5 py-3 space-y-3 text-xs border-y border-border/40">
+                  {/* Technical ID (paymentAccountId) */}
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-muted/40 border border-border/50">
+                    <div className="truncate mr-2">
+                      <span className="text-[10px] text-muted-foreground uppercase font-mono block">Channel / Account ID</span>
+                      <code className="text-[11px] font-mono text-foreground font-semibold select-all truncate block">
+                        {acc.id}
+                      </code>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyId(acc.id)}
+                      className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      {copiedId === acc.id ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <span className="text-muted-foreground">Provider Gateway</span>
@@ -295,6 +371,7 @@ export const PaymentAccountsPage: React.FC = () => {
                     size="sm"
                     onClick={() => setDisconnectTarget(acc)}
                     className="text-xs h-8 px-2 text-destructive hover:bg-destructive/10"
+                    title="Putuskan koneksi"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
@@ -315,6 +392,64 @@ export const PaymentAccountsPage: React.FC = () => {
         }}
       />
 
+      {/* Quick Rename Display Name Modal */}
+      <Dialog open={!!renameTarget} onOpenChange={(open) => !open && setRenameTarget(null)}>
+        <DialogContent className="sm:max-w-md bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-foreground">
+              Ubah Nama Tampilan Channel
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-1">
+              Nama ini digunakan sebagai label tampilan saat client/pembeli memilih metode pembayaran di website Anda (misal: <em>"QRIS Utama"</em> atau <em>"QRIS Toko 2"</em>).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="rename-channel-input" className="text-xs font-semibold">
+                Nama Tampilan (Display Name)
+              </Label>
+              <Input
+                id="rename-channel-input"
+                value={newNameInput}
+                onChange={(e) => setNewNameInput(e.target.value)}
+                placeholder="Contoh: QRIS Utama"
+                className="text-xs h-9 bg-background"
+                maxLength={100}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSaveRename();
+                  }
+                }}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Perubahan nama tampilan tidak mengubah ID teknis akun dan tidak mempengaruhi saldo ataupun koneksi GoBiz.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setRenameTarget(null)}
+              className="text-xs"
+            >
+              Batal
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveRename}
+              disabled={renameMutation.isPending || !newNameInput.trim()}
+              className="text-xs font-semibold"
+            >
+              {renameMutation.isPending ? 'Menyimpan...' : 'Simpan Nama'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Disconnect Confirmation Modal */}
       <Dialog open={!!disconnectTarget} onOpenChange={(open) => !open && setDisconnectTarget(null)}>
         <DialogContent className="sm:max-w-md bg-card border-border">
@@ -323,7 +458,7 @@ export const PaymentAccountsPage: React.FC = () => {
               Putuskan Koneksi Akun GoBiz?
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-1">
-              Apakah Anda yakin ingin memutuskan akun <strong>{disconnectTarget?.goBiz?.outletName || disconnectTarget?.name}</strong>? Transaksi QRIS baru tidak akan dapat diproses menggunakan akun ini sampai dihubungkan kembali.
+              Apakah Anda yakin ingin memutuskan akun <strong>{disconnectTarget?.name}</strong> (Outlet: {disconnectTarget?.goBiz?.outletName || '-'})? Transaksi QRIS baru tidak akan dapat diproses menggunakan akun ini sampai dihubungkan kembali.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 pt-3">
