@@ -39,6 +39,8 @@ interface TransactionDetailData {
   paymentAccount: {
     id: string;
     name: string;
+    providerCode?: string;
+    providerName?: string;
     outletName: string;
     merchantName: string | null;
   };
@@ -154,6 +156,8 @@ export const TransactionDetailPage: React.FC = () => {
     );
   }
 
+  const isDynamic = trx.paymentAccount?.providerCode === 'GOBIZ_DYNAMIC' || trx.metadata?.provider === 'GOBIZ_DYNAMIC';
+
   return (
     <div className="space-y-6">
       {/* Top Back & Header */}
@@ -233,7 +237,11 @@ export const TransactionDetailPage: React.FC = () => {
               <div className="flex items-baseline justify-between pt-1">
                 <div>
                   <span className="text-sm font-bold text-foreground">Total Tagihan (Total Settlement)</span>
-                  <p className="text-[11px] text-muted-foreground">Dana masuk 100% langsung ke rekening GoBiz Anda</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {isDynamic
+                      ? 'Dana masuk 100% langsung ke saldo GoPay Merchant Anda'
+                      : 'Dana masuk 100% langsung ke rekening GoBiz Anda'}
+                  </p>
                 </div>
                 <span className="text-2xl font-black text-foreground font-mono">
                   Rp {trx.totalAmount.toLocaleString('id-ID')}
@@ -252,7 +260,9 @@ export const TransactionDetailPage: React.FC = () => {
             <CardContent className="p-5 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <span className="text-xs text-muted-foreground">Nama Outlet GoBiz</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isDynamic ? 'Nama Outlet' : 'Nama Outlet GoBiz'}
+                  </span>
                   <p className="text-sm font-bold text-foreground mt-0.5">{trx.paymentAccount.outletName}</p>
                 </div>
                 <div>
@@ -264,12 +274,16 @@ export const TransactionDetailPage: React.FC = () => {
                   <p className="text-xs font-mono text-foreground mt-0.5">{trx.externalRefNo || '-'}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-muted-foreground">GoBiz Mutation Ref ID</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isDynamic ? 'Payment Reference ID' : 'GoBiz Mutation Ref ID'}
+                  </span>
                   <p className="text-xs font-mono text-foreground mt-0.5">
                     {trx.providerRefId ? (
                       <span className="text-emerald-600 dark:text-emerald-400 font-bold">{trx.providerRefId}</span>
                     ) : (
-                      <span className="text-muted-foreground italic">Menunggu mutasi...</span>
+                      <span className="text-muted-foreground italic">
+                        {isDynamic ? 'Menunggu settlement...' : 'Menunggu mutasi...'}
+                      </span>
                     )}
                   </p>
                 </div>
