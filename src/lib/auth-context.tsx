@@ -8,6 +8,8 @@ export interface UserProfile {
   name: string;
   role: 'USER' | 'ADMIN';
   status: string;
+  hasDynamicAccess: boolean;
+  dynamicActivatedAt?: string | null;
   createdAt: string;
   subscription: {
     status: string;

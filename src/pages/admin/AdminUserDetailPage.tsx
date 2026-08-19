@@ -1,6 +1,7 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import {
   ArrowLeft,
@@ -12,6 +13,7 @@ import {
   AlertTriangle,
   Calendar,
   Layers,
+  Sparkles,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +27,8 @@ interface UserDetailResponse {
     name: string;
     role: string;
     status: string;
+    hasDynamicAccess: boolean;
+    dynamicActivatedAt?: string | null;
     createdAt: string;
     updatedAt: string;
     plan: {
@@ -69,6 +73,7 @@ interface UserDetailResponse {
 
 export const AdminUserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['adminUserDetail', id],
@@ -77,6 +82,28 @@ export const AdminUserDetailPage: React.FC = () => {
       return res.data;
     },
     enabled: !!id,
+  });
+
+  const toggleDynamicMutation = useMutation({
+    mutationFn: async (hasDynamicAccess: boolean) => {
+      const res = await apiClient(`/api/admin/users/${id}/dynamic-access`, {
+        method: 'PATCH',
+        body: JSON.stringify({ hasDynamicAccess }),
+      });
+      return res.data as { hasDynamicAccess: boolean };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['adminUserDetail', id] });
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      toast.success(
+        data?.hasDynamicAccess
+          ? 'Akses GoPay Merchant Dynamic berhasil diaktifkan (ON)'
+          : 'Akses GoPay Merchant Dynamic berhasil dinonaktifkan (OFF)'
+      );
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Gagal mengubah status akses GoPay Dynamic');
+    },
   });
 
   if (isLoading) {
@@ -163,6 +190,71 @@ export const AdminUserDetailPage: React.FC = () => {
             <div className="text-right sm:border-l sm:pl-6 border-border/60">
               <span className="text-[11px] font-semibold uppercase text-muted-foreground tracking-wider">User ID</span>
               <p className="font-mono text-xs text-foreground select-all mt-0.5">{user.id}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Exclusive Add-ons / Dynamic QR Access Control */}
+      <Card className="bg-card border-border/80 shadow-2xs">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Akses Fitur Eksklusif: GoPay Merchant Dynamic</span>
+              </CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                Add-on QRIS Dinamis Rp 500.000 (Aktivasi Permanen Sekali Bayar).
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              {user.hasDynamicAccess ? (
+                <Badge variant="paid" className="text-xs font-bold px-3 py-1">
+                  AKSES AKTIF (ON)
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-xs font-semibold px-3 py-1 text-muted-foreground bg-muted/40">
+                  AKSES NONAKTIF (OFF)
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border/60 bg-muted/20">
+            <div className="space-y-1 text-xs">
+              <p className="font-semibold text-foreground">
+                Status Izin Dynamic QR: {user.hasDynamicAccess ? 'Diizinkan (Sudah Bayar)' : 'Terkunci (Belum Diizinkan)'}
+              </p>
+              <p className="text-muted-foreground text-[11px]">
+                {user.hasDynamicAccess && user.dynamicActivatedAt
+                  ? `Diaktifkan pada: ${new Date(user.dynamicActivatedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}`
+                  : 'User default tidak memiliki akses ke fitur ini sampai diaktifkan manual oleh Admin.'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {user.hasDynamicAccess ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={toggleDynamicMutation.isPending}
+                  onClick={() => toggleDynamicMutation.mutate(false)}
+                  className="text-xs h-9 font-semibold"
+                >
+                  {toggleDynamicMutation.isPending ? 'Memproses...' : 'Nonaktifkan Akses (OFF)'}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  disabled={toggleDynamicMutation.isPending}
+                  onClick={() => toggleDynamicMutation.mutate(true)}
+                  className="text-xs h-9 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {toggleDynamicMutation.isPending ? 'Memproses...' : 'Aktifkan Akses (ON) • Rp 500.000'}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

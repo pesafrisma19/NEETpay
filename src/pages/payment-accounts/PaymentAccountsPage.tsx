@@ -412,6 +412,7 @@ export const PaymentAccountsPage: React.FC = () => {
       <ProviderSelectModal
         open={providerSelectOpen}
         onOpenChange={setProviderSelectOpen}
+        hasDynamicAccess={user?.hasDynamicAccess ?? false}
         onSelectGoBizNative={() => {
           setProviderSelectOpen(false);
           setConnectGoBizOpen(true);

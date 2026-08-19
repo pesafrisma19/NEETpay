@@ -24,6 +24,8 @@ interface AdminUserItem {
   name: string;
   role: string;
   status: string;
+  hasDynamicAccess: boolean;
+  dynamicActivatedAt?: string | null;
   createdAt: string;
   plan: {
     code: string;
@@ -178,6 +180,7 @@ export const AdminUsersPage: React.FC = () => {
                     <th className="p-3.5 pl-4">Pengguna</th>
                     <th className="p-3.5">Plan</th>
                     <th className="p-3.5">Status</th>
+                    <th className="p-3.5 text-center">Dynamic QR</th>
                     <th className="p-3.5 text-center">Payment Accounts</th>
                     <th className="p-3.5 text-center">Transaksi</th>
                     <th className="p-3.5">Terdaftar</th>
@@ -210,6 +213,17 @@ export const AdminUsersPage: React.FC = () => {
                         >
                           {u.status}
                         </Badge>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        {u.hasDynamicAccess ? (
+                          <Badge variant="paid" className="text-[10px] font-bold">
+                            ON (Aktif)
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] text-muted-foreground bg-muted/30">
+                            OFF
+                          </Badge>
+                        )}
                       </td>
                       <td className="p-3.5 text-center font-medium text-muted-foreground">
                         {u.counts.paymentAccounts} / {u.plan.limit}
@@ -248,9 +262,16 @@ export const AdminUsersPage: React.FC = () => {
                     <h3 className="font-bold text-sm text-foreground">{u.name}</h3>
                     <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
-                  <Badge variant={u.plan.code === 'PRO' ? 'default' : 'outline'} className="text-[10px] font-bold">
-                    {u.plan.code}
-                  </Badge>
+                  <div className="flex items-center gap-1.5">
+                    {u.hasDynamicAccess && (
+                      <Badge variant="paid" className="text-[9px] font-bold">
+                        Dynamic ON
+                      </Badge>
+                    )}
+                    <Badge variant={u.plan.code === 'PRO' ? 'default' : 'outline'} className="text-[10px] font-bold">
+                      {u.plan.code}
+                    </Badge>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs pt-2 border-t text-muted-foreground">
