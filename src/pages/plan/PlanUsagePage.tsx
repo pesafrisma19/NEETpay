@@ -6,8 +6,10 @@ import {
   QrCode,
   Webhook,
   Check,
+  MessageSquare,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +47,14 @@ interface UsageOverviewData {
 }
 
 export const PlanUsagePage: React.FC = () => {
+  const { user } = useAuth();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  const waNumber = '6285220581369';
+  const waText = encodeURIComponent(
+    `Halo Admin NEETpay, saya ingin upgrade akun saya ke Paket PRO (Rp 20.000 / bulan).\n\nEmail Akun: ${user?.email || '-'}`
+  );
+  const waUrl = `https://wa.me/${waNumber}?text=${waText}`;
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-overview'],
@@ -290,9 +299,22 @@ export const PlanUsagePage: React.FC = () => {
             </p>
           </div>
 
-          <DialogFooter className="pt-2">
-            <Button onClick={() => setUpgradeModalOpen(false)} className="w-full text-xs font-semibold">
-              Mengerti
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setUpgradeModalOpen(false)}
+              className="text-xs h-9 px-4 sm:flex-1 order-2 sm:order-1"
+            >
+              Tutup
+            </Button>
+            <Button
+              asChild
+              className="text-xs h-9 px-4 sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 order-1 sm:order-2"
+            >
+              <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Hubungi Admin (WhatsApp)</span>
+              </a>
             </Button>
           </DialogFooter>
         </DialogContent>
