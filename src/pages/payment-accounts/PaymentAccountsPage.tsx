@@ -18,6 +18,8 @@ import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { ConnectGoBizModal } from './ConnectGoBizModal';
+import { ConnectGoPayDynamicModal } from './ConnectGoPayDynamicModal';
+import { ProviderSelectModal } from './ProviderSelectModal';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +62,9 @@ interface PaymentAccountItem {
 export const PaymentAccountsPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [providerSelectOpen, setProviderSelectOpen] = useState(false);
+  const [connectGoBizOpen, setConnectGoBizOpen] = useState(false);
+  const [connectDynamicOpen, setConnectDynamicOpen] = useState(false);
   const [disconnectTarget, setDisconnectTarget] = useState<PaymentAccountItem | null>(null);
   const [renameTarget, setRenameTarget] = useState<PaymentAccountItem | null>(null);
   const [newNameInput, setNewNameInput] = useState('');
@@ -172,12 +176,12 @@ export const PaymentAccountsPage: React.FC = () => {
 
           <Button
             size="sm"
-            onClick={() => setConnectModalOpen(true)}
+            onClick={() => setProviderSelectOpen(true)}
             disabled={isLimitReached}
             className="text-xs font-semibold gap-1.5 h-9"
           >
             <PlusCircle className="w-3.5 h-3.5" />
-            <span>Hubungkan GoBiz</span>
+            <span>Hubungkan Akun</span>
           </Button>
         </div>
       </div>
@@ -238,11 +242,11 @@ export const PaymentAccountsPage: React.FC = () => {
           </CardDescription>
           <Button
             size="sm"
-            onClick={() => setConnectModalOpen(true)}
+            onClick={() => setProviderSelectOpen(true)}
             className="text-xs font-semibold gap-1.5 mt-2"
           >
             <PlusCircle className="w-3.5 h-3.5" />
-            <span>Hubungkan Akun GoBiz Pertama</span>
+            <span>Hubungkan Akun Pembayaran Pertama</span>
           </Button>
         </Card>
       ) : (
@@ -382,10 +386,34 @@ export const PaymentAccountsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Connect GoBiz Dialog */}
+      {/* Provider Selector Dialog */}
+      <ProviderSelectModal
+        open={providerSelectOpen}
+        onOpenChange={setProviderSelectOpen}
+        onSelectGoBizNative={() => {
+          setProviderSelectOpen(false);
+          setConnectGoBizOpen(true);
+        }}
+        onSelectGoBizDynamic={() => {
+          setProviderSelectOpen(false);
+          setConnectDynamicOpen(true);
+        }}
+      />
+
+      {/* Connect GoBiz Native Dialog (Existing Untouched Flow) */}
       <ConnectGoBizModal
-        open={connectModalOpen}
-        onOpenChange={setConnectModalOpen}
+        open={connectGoBizOpen}
+        onOpenChange={setConnectGoBizOpen}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['payment-accounts-list'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
+        }}
+      />
+
+      {/* Connect GoPay Merchant Dynamic Dialog (New Dynamic Flow) */}
+      <ConnectGoPayDynamicModal
+        open={connectDynamicOpen}
+        onOpenChange={setConnectDynamicOpen}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['payment-accounts-list'] });
           queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
