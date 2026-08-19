@@ -13,6 +13,7 @@ import {
   Edit2,
   Copy,
   Check,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
@@ -20,6 +21,7 @@ import { useAuth } from '@/lib/auth-context';
 import { ConnectGoBizModal } from './ConnectGoBizModal';
 import { ConnectGoPayDynamicModal } from './ConnectGoPayDynamicModal';
 import { ProviderSelectModal } from './ProviderSelectModal';
+import { TestDynamicQrModal } from './TestDynamicQrModal';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +67,7 @@ export const PaymentAccountsPage: React.FC = () => {
   const [providerSelectOpen, setProviderSelectOpen] = useState(false);
   const [connectGoBizOpen, setConnectGoBizOpen] = useState(false);
   const [connectDynamicOpen, setConnectDynamicOpen] = useState(false);
+  const [testModalTarget, setTestModalTarget] = useState<PaymentAccountItem | null>(null);
   const [disconnectTarget, setDisconnectTarget] = useState<PaymentAccountItem | null>(null);
   const [renameTarget, setRenameTarget] = useState<PaymentAccountItem | null>(null);
   const [newNameInput, setNewNameInput] = useState('');
@@ -326,7 +329,12 @@ export const PaymentAccountsPage: React.FC = () => {
                     <div>
                       <span className="text-muted-foreground">Status QRIS</span>
                       <p className="font-semibold text-foreground mt-0.5 flex items-center gap-1.5">
-                        {acc.goBiz?.hasQrString ? (
+                        {acc.provider === 'GOBIZ_DYNAMIC' ? (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5 text-primary" />
+                            <span>Dynamic Ready</span>
+                          </>
+                        ) : acc.goBiz?.hasQrString ? (
                           <>
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                             <span>QRIS Synced</span>
@@ -344,6 +352,8 @@ export const PaymentAccountsPage: React.FC = () => {
                       <p className="font-mono text-muted-foreground mt-0.5">
                         {acc.goBiz?.qrUpdatedAt
                           ? new Date(acc.goBiz.qrUpdatedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                          : acc.provider === 'GOBIZ_DYNAMIC'
+                          ? 'Real-time'
                           : '-'}
                       </p>
                     </div>
@@ -352,16 +362,28 @@ export const PaymentAccountsPage: React.FC = () => {
 
                 <CardFooter className="p-4 bg-muted/20 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => resyncMutation.mutate(acc.id)}
-                      disabled={resyncMutation.isPending}
-                      className="text-xs h-8 px-2.5"
-                    >
-                      <RefreshCw className={`w-3 h-3 mr-1.5 ${resyncMutation.isPending ? 'animate-spin' : ''}`} />
-                      <span>Resync QRIS</span>
-                    </Button>
+                    {acc.provider === 'GOBIZ_DYNAMIC' ? (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => setTestModalTarget(acc)}
+                        className="text-xs h-8 px-2.5 font-semibold gap-1.5 shadow-xs"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Test Dynamic QR</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => resyncMutation.mutate(acc.id)}
+                        disabled={resyncMutation.isPending}
+                        className="text-xs h-8 px-2.5"
+                      >
+                        <RefreshCw className={`w-3 h-3 mr-1.5 ${resyncMutation.isPending ? 'animate-spin' : ''}`} />
+                        <span>Resync QRIS</span>
+                      </Button>
+                    )}
                     <Button asChild variant="secondary" size="sm" className="text-xs h-8 font-semibold">
                       <Link to={`/dashboard/payment-accounts/${acc.id}`}>
                         <Settings className="w-3 h-3 mr-1.5" />
@@ -418,6 +440,13 @@ export const PaymentAccountsPage: React.FC = () => {
           queryClient.invalidateQueries({ queryKey: ['payment-accounts-list'] });
           queryClient.invalidateQueries({ queryKey: ['dashboard-overview'] });
         }}
+      />
+
+      {/* Test Dynamic QRIS Modal (Isolated Rp 1.000 Test) */}
+      <TestDynamicQrModal
+        open={!!testModalTarget}
+        onOpenChange={(open) => !open && setTestModalTarget(null)}
+        account={testModalTarget}
       />
 
       {/* Quick Rename Display Name Modal */}
