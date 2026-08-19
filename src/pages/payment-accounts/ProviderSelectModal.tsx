@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, Store, Lock, CheckCircle2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Store, Lock, CheckCircle2, MessageSquare } from 'lucide-react';
 
 interface ProviderSelectModalProps {
   open: boolean;
@@ -17,6 +17,7 @@ interface ProviderSelectModalProps {
   onSelectGoBizNative: () => void;
   onSelectGoBizDynamic: () => void;
   hasDynamicAccess?: boolean;
+  userEmail?: string;
 }
 
 export const ProviderSelectModal: React.FC<ProviderSelectModalProps> = ({
@@ -25,8 +26,15 @@ export const ProviderSelectModal: React.FC<ProviderSelectModalProps> = ({
   onSelectGoBizNative,
   onSelectGoBizDynamic,
   hasDynamicAccess = false,
+  userEmail = '',
 }) => {
   const [lockedNoticeOpen, setLockedNoticeOpen] = useState(false);
+
+  const waNumber = '6285220581369';
+  const waText = encodeURIComponent(
+    `Halo Admin NEETpay, saya ingin mengajukan aktivasi Add-on GoPay Merchant Dynamic (Rp 500.000) untuk akun saya.\n\nEmail Akun: ${userEmail || '-'}`
+  );
+  const waUrl = `https://wa.me/${waNumber}?text=${waText}`;
 
   const handleDynamicClick = () => {
     if (!hasDynamicAccess) {
@@ -167,14 +175,24 @@ export const ProviderSelectModal: React.FC<ProviderSelectModalProps> = ({
             </div>
           </div>
 
-          <DialogFooter className="sm:justify-center pt-2">
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setLockedNoticeOpen(false)}
-              className="text-xs h-9 px-6"
+              className="text-xs h-9 px-4 sm:flex-1 order-2 sm:order-1"
             >
               Tutup
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              className="text-xs h-9 px-4 sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 order-1 sm:order-2"
+            >
+              <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Hubungi Admin (WhatsApp)</span>
+              </a>
             </Button>
           </DialogFooter>
         </DialogContent>
