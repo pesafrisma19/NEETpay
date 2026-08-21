@@ -11,6 +11,8 @@ import {
   Check,
   Store,
   Download,
+  Smartphone,
+  ChevronDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,6 +25,7 @@ interface PublicPayData {
   total_amount: number;
   status: 'PENDING' | 'PAID' | 'EXPIRED' | string;
   qris_url: string | null;
+  deeplink_url?: string | null;
   created_at: string;
   expires_at: string;
   paid_at: string | null;
@@ -36,6 +39,7 @@ export const PublicPayPage: React.FC = () => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number } | null>(null);
   const [isExpiredLocally, setIsExpiredLocally] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   const apiBase = import.meta.env.VITE_API_URL || 'https://api.neetpay.web.id';
 
@@ -283,29 +287,82 @@ export const PublicPayPage: React.FC = () => {
               </div>
             )}
 
-            {/* QRIS Image Container */}
-            {data.qris_url && (
-              <div className="flex flex-col items-center justify-center space-y-3">
-                <div className="p-4 bg-white rounded-2xl shadow-md border-2 border-slate-100 flex items-center justify-center">
-                  <img
-                    src={data.qris_url}
-                    alt={`QRIS ${data.reference}`}
-                    className="w-56 h-56 object-contain"
-                  />
-                </div>
-
-                <button
-                  onClick={handleDownloadQr}
-                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-semibold"
+            {/* GoPay Direct 1-Click Button */}
+            {data.deeplink_url && (
+              <div className="space-y-2 pt-1">
+                <a
+                  href={data.deeplink_url}
+                  className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl bg-[#00AA13] hover:bg-[#008F10] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Simpan Gambar QR</span>
-                </button>
+                  <Smartphone className="w-4 h-4" />
+                  <span>Bayar via Aplikasi GoPay</span>
+                </a>
+                <p className="text-[11px] text-center text-slate-500 dark:text-slate-400">
+                  Khusus smartphone: klik untuk membuka aplikasi GoPay langsung
+                </p>
               </div>
             )}
 
-            {/* Instruction Accordion / Footer */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3 text-xs">
+            {/* Divider if both GoPay and QRIS exist */}
+            {data.deeplink_url && data.qris_url && (
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">
+                  Atau
+                </span>
+                <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+              </div>
+            )}
+
+            {/* Collapsible QRIS Accordion */}
+            {data.qris_url && (
+              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowQr((prev) => !prev)}
+                  className="w-full flex items-center justify-between p-3.5 text-left font-semibold text-xs text-slate-800 dark:text-slate-200 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <QrCode className="w-4 h-4 text-primary" />
+                    <span>Bayar via QRIS (BCA, Mandiri, Dana, dll.)</span>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                      showQr ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {showQr && (
+                  <div className="p-4 pt-2 text-center space-y-3 border-t border-slate-200/60 dark:border-slate-800/60">
+                    <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center max-w-[220px] mx-auto">
+                      <img
+                        src={data.qris_url}
+                        alt={`QRIS ${data.reference}`}
+                        className="w-48 h-48 object-contain"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={handleDownloadQr}
+                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-semibold"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Simpan Gambar QR</span>
+                      </button>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+                        Buka GoPay, BCA, Mandiri, Dana, OVO, ShopeePay, atau m-Banking apa saja, lalu scan kode QR di atas.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Instruction Footer */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs">
               <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <QrCode className="w-3.5 h-3.5" />
@@ -313,9 +370,6 @@ export const PublicPayPage: React.FC = () => {
                 </span>
                 <span className="font-mono font-bold text-slate-700 dark:text-slate-300">QRIS Nasional</span>
               </div>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed text-center">
-                Buka GoPay, BCA, Mandiri, Dana, OVO, ShopeePay, atau m-Banking apa saja, lalu scan kode QR di atas.
-              </p>
             </div>
           </div>
         )}
