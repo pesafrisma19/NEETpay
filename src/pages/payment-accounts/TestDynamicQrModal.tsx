@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { QRCodeSVG } from 'qrcode.react';
 import {
   Sparkles,
   QrCode,
@@ -38,6 +37,7 @@ interface TestData {
   testOrderId: string;
   amount: number;
   status: 'PENDING' | 'PAID' | 'EXPIRED' | 'FAILED';
+  qrImage?: string | null;
   qrString?: string | null;
   paymentUrl?: string | null;
   createdAt: string;
@@ -231,18 +231,17 @@ export const TestDynamicQrModal: React.FC<TestDynamicQrModalProps> = ({
               </div>
             ) : (
               <div className="space-y-3.5">
-                {testData.qrString ? (
+                {testData.qrImage ? (
                   <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 text-center space-y-3">
                     <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary">
                       <QrCode className="w-4 h-4" />
                       <span>Scan QRIS Dinamis Rp 1.000</span>
                     </div>
                     <div className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-xs border border-border/40 mx-auto max-w-[210px]">
-                      <QRCodeSVG
-                        value={testData.qrString}
-                        size={170}
-                        level="M"
-                        marginSize={2}
+                      <img
+                        src={testData.qrImage}
+                        alt="QRIS Test Rp 1.000"
+                        className="w-[170px] h-[170px] object-contain rounded-md"
                       />
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
