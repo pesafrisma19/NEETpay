@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Sparkles,
   QrCode,
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
-  ExternalLink,
   Loader2,
   Check,
   Copy,
@@ -38,7 +38,8 @@ interface TestData {
   testOrderId: string;
   amount: number;
   status: 'PENDING' | 'PAID' | 'EXPIRED' | 'FAILED';
-  paymentUrl: string | null;
+  qrString?: string | null;
+  paymentUrl?: string | null;
   createdAt: string;
   paidAt?: string | null;
   issuer?: string;
@@ -230,25 +231,33 @@ export const TestDynamicQrModal: React.FC<TestDynamicQrModalProps> = ({
               </div>
             ) : (
               <div className="space-y-3.5">
-                {testData.paymentUrl && (
+                {testData.qrString ? (
                   <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 text-center space-y-3">
                     <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary">
                       <QrCode className="w-4 h-4" />
-                      <span>Halaman Pembayaran QRIS Dinamis</span>
+                      <span>Scan QRIS Dinamis Rp 1.000</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-xs border border-border/40 mx-auto max-w-[210px]">
+                      <QRCodeSVG
+                        value={testData.qrString}
+                        size={170}
+                        level="M"
+                        marginSize={2}
+                      />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Scan kode QR di atas menggunakan GoPay, BCA, Mandiri, Dana, OVO, atau e-wallet/banking apa saja.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 text-center space-y-3">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary">
+                      <QrCode className="w-4 h-4" />
+                      <span>Verifikasi QRIS Dinamis</span>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Buka halaman QR di bawah, lalu scan kode QR menggunakan aplikasi m-Banking (BCA, Mandiri, GoPay, Dana, dll).
+                      Koneksi gateway aktif. Silakan lakukan pembayaran nominal <strong>Rp 1.000</strong> dengan referensi order di atas untuk mengetes deteksi settlement.
                     </p>
-                    <Button
-                      asChild
-                      size="sm"
-                      className="w-full text-xs font-semibold gap-1.5 h-9"
-                    >
-                      <a href={testData.paymentUrl} target="_blank" rel="noopener noreferrer">
-                        <span>Buka QRIS Pembayaran Rp 1.000</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </Button>
                   </div>
                 )}
 

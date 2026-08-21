@@ -14,6 +14,9 @@ import { RegisterPage } from '@/pages/auth/RegisterPage';
 // Documentation Page (OpenAPI + Scalar)
 import { ApiDocsPage } from '@/pages/docs/ApiDocsPage';
 
+// Public Hosted Checkout Page
+import { PublicPayPage } from '@/pages/checkout/PublicPayPage';
+
 // User Dashboard Pages
 import { OverviewPage } from '@/pages/dashboard/OverviewPage';
 import { TransactionsPage } from '@/pages/transactions/TransactionsPage';
@@ -135,6 +138,9 @@ export const AppRoutes: React.FC = () => {
     <Routes>
       {/* Public Documentation Route */}
       <Route path="/docs" element={<ApiDocsPage />} />
+
+      {/* Public Hosted Checkout Route */}
+      <Route path="/pay/:reference" element={<PublicPayPage />} />
 
       {/* Public / Guest Routes */}
       <Route element={<RequireGuest />}>
