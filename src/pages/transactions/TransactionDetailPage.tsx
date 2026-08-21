@@ -32,6 +32,7 @@ interface TransactionDetailData {
   status: 'PENDING' | 'PAID' | 'EXPIRED' | string;
   customerName: string | null;
   customerEmail: string | null;
+  customerPhone?: string | null;
   metadata: Record<string, any> | null;
   qrisPayload: string | null;
   qrisUrl: string | null;
@@ -292,7 +293,7 @@ export const TransactionDetailPage: React.FC = () => {
           </Card>
 
           {/* Customer & Metadata */}
-          {(trx.customerName || trx.customerEmail || trx.metadata) && (
+          {(trx.customerName || trx.customerEmail || trx.customerPhone || trx.metadata) && (
             <Card className="border-border/80 bg-card shadow-xs">
               <CardHeader className="p-5 pb-3 border-b border-border/60">
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
@@ -300,7 +301,7 @@ export const TransactionDetailPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {trx.customerName && (
                     <div>
                       <span className="text-xs text-muted-foreground">Customer Name</span>
@@ -311,6 +312,12 @@ export const TransactionDetailPage: React.FC = () => {
                     <div>
                       <span className="text-xs text-muted-foreground">Customer Email</span>
                       <p className="text-sm font-semibold text-foreground mt-0.5">{trx.customerEmail}</p>
+                    </div>
+                  )}
+                  {trx.customerPhone && (
+                    <div>
+                      <span className="text-xs text-muted-foreground">Customer Phone</span>
+                      <p className="text-sm font-semibold text-foreground mt-0.5 font-mono">{trx.customerPhone}</p>
                     </div>
                   )}
                 </div>
