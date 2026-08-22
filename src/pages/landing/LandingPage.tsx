@@ -23,6 +23,7 @@ import {
   RefreshCw,
   Copy,
   Check,
+  Sparkles,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -106,12 +107,20 @@ export const LandingPage: React.FC = () => {
       a: 'Payment gateway konvensional menampung uang penjualan Anda di rekening perantara mereka dan baru mencairkannya kemudian dengan mekanisme withdraw. Di NEETpay, dana pembeli masuk langsung ke akun merchant Anda tanpa saldo perantara.',
     },
     {
-      q: 'Apakah QRIS-nya dinamis?',
-      a: 'Ya. Setiap transaksi menghasilkan kode QR dengan nominal pembayaran yang sudah ditentukan otomatis, sehingga pembeli tidak perlu mengetik nominal manual dan proses checkout lebih cepat.',
+      q: 'Apakah NEETpay mendukung QRIS dinamis?',
+      a: 'Ya. NEETpay mendukung dua pendekatan. Untuk akun merchant standar, QRIS merchant dapat dibuat bernominal otomatis. Untuk akun yang memiliki akses pembayaran dinamis, provider dapat membuat Native Dynamic QRIS khusus untuk setiap transaksi.',
+    },
+    {
+      q: 'Apa kelebihan Native Dynamic QRIS?',
+      a: 'QR dibuat khusus per transaksi, nominal tetap pas tanpa kode unik, tersedia GoPay Deeplink pada flow yang mendukung, dan status pembayaran terikat ke transaksi provider. Setelah transaksi dibayar atau kedaluwarsa, provider mengenali status transaksi tersebut sehingga QR yang sama tidak digunakan kembali sebagai transaksi baru.',
+    },
+    {
+      q: 'Apakah semua akun mendapatkan Native Dynamic QRIS?',
+      a: 'Tidak. Native Dynamic QRIS hanya tersedia untuk akun/koneksi merchant yang memiliki akses pembayaran dinamis yang didukung. Akun standar tetap dapat menggunakan fitur QRIS Merchant Bernominal.',
     },
     {
       q: 'Apakah tersedia metode GoPay?',
-      a: 'Ya. Pengguna mobile dapat membuka pembayaran GoPay langsung dari perangkat yang mendukung secara praktis.',
+      a: 'Ya. Pengguna mobile dapat membuka pembayaran GoPay langsung dari perangkat yang mendukung secara praktis pada koneksi merchant yang menyediakan flow tersebut.',
     },
     {
       q: 'Apakah tersedia REST API & Webhook?',
@@ -144,6 +153,7 @@ export const LandingPage: React.FC = () => {
 
             <nav className="hidden md:flex items-center gap-5 text-xs font-semibold text-muted-foreground">
               <a href="#activity" className="hover:text-foreground transition-colors">Aktivitas</a>
+              <a href="#modes" className="hover:text-foreground transition-colors">Dua Mode QRIS</a>
               <a href="#how-it-works" className="hover:text-foreground transition-colors">Cara Kerja</a>
               <a href="#features" className="hover:text-foreground transition-colors">Fitur</a>
               <a href="#checkout" className="hover:text-foreground transition-colors">Checkout</a>
@@ -187,6 +197,7 @@ export const LandingPage: React.FC = () => {
           <div className="md:hidden border-b border-border bg-background p-4 space-y-3">
             <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-muted-foreground pb-3 border-b border-border/60">
               <a href="#activity" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:text-foreground">Aktivitas</a>
+              <a href="#modes" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:text-foreground">Dua Mode QRIS</a>
               <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:text-foreground">Cara Kerja</a>
               <a href="#features" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:text-foreground">Fitur</a>
               <a href="#checkout" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:text-foreground">Checkout</a>
@@ -219,7 +230,7 @@ export const LandingPage: React.FC = () => {
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
                   <Zap className="w-3.5 h-3.5" />
-                  <span>Otomatisasi Pembayaran QRIS Dinamis & GoPay</span>
+                  <span>Otomatisasi QRIS & GoPay untuk Merchant Anda</span>
                 </div>
 
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.15]">
@@ -227,7 +238,7 @@ export const LandingPage: React.FC = () => {
                 </h1>
 
                 <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                  Terima pembayaran QRIS Dinamis dan GoPay melalui API NEETpay. Pantau status transaksi dan terima webhook otomatis tanpa membangun sistem pembayaran dari nol.
+                  Gunakan QRIS merchant dengan nominal otomatis atau Native Dynamic QRIS dengan QR khusus per transaksi, nominal pas tanpa kode unik, dan GoPay Deeplink untuk akun yang mendukung.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
@@ -250,6 +261,10 @@ export const LandingPage: React.FC = () => {
                   <span className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     <span>Dana Melalui Akun Merchant Anda</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span>Dua Mode QRIS Fleksibel</span>
                   </span>
                   <span className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -389,7 +404,155 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 4. CORE VALUE / WHY NEETPAY */}
+        {/* 4. DUA MODE QRIS (KOMPARASI TRANSPARAN) */}
+        <section id="modes" className="py-16 md:py-24 border-b border-border/60 bg-gradient-to-b from-transparent via-muted/10 to-transparent">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <Badge variant="outline" className="text-xs font-semibold">Fleksibilitas Integrasi</Badge>
+              <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+                Dua Kemampuan QRIS Sesuai Tipe Akun Merchant
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                NEETpay mendukung pemrosesan QRIS standar menggunakan QR merchant yang ada, maupun Native Dynamic QRIS per transaksi untuk akun yang mendukung.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+              {/* Mode 1: QRIS Merchant Bernominal */}
+              <div className="rounded-2xl border-2 border-border/80 bg-card p-6 md:p-8 flex flex-col justify-between space-y-6 shadow-sm">
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <QrCode className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-base text-foreground">QRIS Merchant Bernominal</h3>
+                        <p className="text-xs text-muted-foreground">Untuk akun merchant standar</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px]">Standar</Badge>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Gunakan QRIS merchant yang sudah Anda miliki dan biarkan NEETpay mengisi nominal pembayaran secara otomatis. Pembeli cukup scan tanpa mengetik nominal secara manual.
+                  </p>
+
+                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 text-[11px] font-mono text-muted-foreground space-y-1 text-center">
+                    <span>QRIS Merchant → NEETpay Isi Nominal → QR Bernominal → Customer Scan</span>
+                  </div>
+
+                  <div className="space-y-2.5 pt-2 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span><strong>Nominal Otomatis:</strong> Pembeli tidak perlu memasukkan angka nominal secara manual.</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span><strong>Gunakan QRIS Merchant yang Sudah Ada:</strong> Menggunakan template QRIS outlet yang sudah aktif Anda miliki.</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span><strong>Pencocokan dengan Kode Unik:</strong> Sistem dapat menambahkan kode unik untuk membedakan transaksi dengan nominal sama.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-border/60 text-[11px] text-muted-foreground">
+                  Cocok untuk merchant pemula yang ingin langsung menerima pembayaran otomatis dari QR outlet yang sudah ada.
+                </div>
+              </div>
+
+              {/* Mode 2: Native Dynamic QRIS (Featured / Advanced) */}
+              <div className="rounded-2xl border-2 border-primary bg-card p-6 md:p-8 flex flex-col justify-between space-y-6 shadow-xl relative">
+                <div className="absolute -top-3 right-6 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-wider">
+                  Lanjutan
+                </div>
+
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center">
+                        <Sparkles className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-base text-foreground">Native Dynamic QRIS</h3>
+                        <p className="text-xs text-primary font-medium">QR khusus untuk setiap transaksi</p>
+                      </div>
+                    </div>
+                    <Badge className="text-[10px]">Dynamic</Badge>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Untuk akun merchant yang mendukung pembayaran dinamis, provider membuat QR baru khusus untuk setiap transaksi. Nominal tetap pas tanpa kode unik, transaksi memiliki identitas provider sendiri, dan pembayaran dapat dilanjutkan langsung melalui GoPay Deeplink.
+                  </p>
+
+                  <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 text-[11px] font-mono text-primary space-y-1 text-center">
+                    <span>Create Trx → Provider Buat QR Khusus → Dynamic QR + Deeplink → Customer Bayar</span>
+                  </div>
+
+                  <div className="space-y-3 pt-2 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <strong>Nominal Tetap Pas (Tanpa Kode Unik):</strong>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Tidak perlu menambahkan Rp1, Rp2, atau angka unik lainnya. Setiap transaksi memiliki identitas sendiri di provider sehingga nominal pembayaran tetap sesuai tagihan.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <strong>Satu Transaksi, Satu QR:</strong>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Setiap transaksi mendapatkan QR tersendiri dari provider, bukan menggunakan satu QR statis yang sama untuk seluruh transaksi.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <strong>Buka Langsung di GoPay:</strong>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Pada perangkat yang mendukung, pembeli dapat melanjutkan pembayaran melalui GoPay Deeplink secara praktis.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <strong>Status Terikat ke Transaksi:</strong>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Setiap pembayaran memiliki identitas transaksi di provider, sehingga NEETpay menerima perubahan status berdasarkan transaksi tersebut.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <strong>Tidak Dipakai Ulang Setelah Selesai:</strong>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Setelah transaksi sudah dibayar atau QR telah kedaluwarsa, provider mengenali status transaksi tersebut sehingga QR yang sama tidak digunakan kembali untuk pembayaran baru.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-border/60 text-[11px] text-muted-foreground">
+                  Tersedia untuk koneksi merchant yang memiliki hak akses pembayaran dinamis yang didukung.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. CORE VALUE / WHY NEETPAY */}
         <section id="features" className="py-16 md:py-24 border-b border-border/60">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-3">
@@ -409,9 +572,9 @@ export const LandingPage: React.FC = () => {
                   <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
                     <QrCode className="w-5 h-5" />
                   </div>
-                  <h4 className="font-bold text-sm text-foreground">QRIS Dinamis</h4>
+                  <h4 className="font-bold text-sm text-foreground">QRIS Merchant Bernominal</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Buat pembayaran dengan nominal transaksi yang sudah ditentukan dan tampilkan QR langsung pada checkout. Dapat dibayar menggunakan aplikasi pembayaran yang mendukung QRIS.
+                    Gunakan QRIS merchant yang sudah Anda miliki dan biarkan NEETpay mengisi nominal pembayaran secara otomatis saat checkout.
                   </p>
                 </CardContent>
               </Card>
@@ -420,11 +583,11 @@ export const LandingPage: React.FC = () => {
               <Card className="border-border/80 bg-card shadow-xs">
                 <CardContent className="p-6 space-y-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                    <Smartphone className="w-5 h-5" />
+                    <Sparkles className="w-5 h-5" />
                   </div>
-                  <h4 className="font-bold text-sm text-foreground">GoPay yang Lebih Praktis</h4>
+                  <h4 className="font-bold text-sm text-foreground">Native Dynamic QRIS</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Pengguna mobile dapat membuka pembayaran GoPay langsung dari perangkat yang mendukung secara instan.
+                    Provider membuat QR khusus per transaksi dengan nominal pas tanpa kode unik untuk akun yang mendukung flow dinamis.
                   </p>
                 </CardContent>
               </Card>
@@ -458,7 +621,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 5. HOW IT WORKS */}
+        {/* 6. HOW IT WORKS */}
         <section id="how-it-works" className="py-16 md:py-24 border-b border-border/60 bg-muted/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-3">
@@ -508,7 +671,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 6. PAYMENT METHODS & 7. CONNECT YOUR MERCHANT ACCOUNT */}
+        {/* 7. CONNECT YOUR MERCHANT ACCOUNT SHOWCASE */}
         <section id="merchant" className="py-16 md:py-24 border-b border-border/60">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -529,7 +692,7 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="flex items-start gap-3 text-xs text-muted-foreground">
                     <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                    <span><strong>GoPay:</strong> Pembayaran langsung melalui GoPay yang tersedia pada koneksi merchant.</span>
+                    <span><strong>GoPay:</strong> Pembayaran langsung melalui GoPay yang tersedia pada koneksi merchant yang mendukung.</span>
                   </div>
                   <div className="flex items-start gap-3 text-xs text-muted-foreground">
                     <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
@@ -992,6 +1155,7 @@ export const LandingPage: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-4 text-[11px]">
             <a href="#features" className="hover:text-foreground">Fitur</a>
+            <a href="#modes" className="hover:text-foreground">Dua Mode QRIS</a>
             <a href="#pricing" className="hover:text-foreground">Harga</a>
             <Link to="/docs" className="hover:text-foreground">Dokumentasi</Link>
             <Link to="/login" className="hover:text-foreground">Masuk</Link>
