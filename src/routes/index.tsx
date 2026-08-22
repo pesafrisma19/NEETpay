@@ -11,6 +11,9 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 
+// Public Landing Page
+import { LandingPage } from '@/pages/landing/LandingPage';
+
 // Documentation Page (OpenAPI + Scalar)
 import { ApiDocsPage } from '@/pages/docs/ApiDocsPage';
 
@@ -133,9 +136,42 @@ const RequireGuest: React.FC = () => {
   return <Outlet />;
 };
 
+/**
+ * Root route handler:
+ * - Guest -> LandingPage
+ * - Authenticated USER -> /dashboard
+ * - Authenticated ADMIN -> /admin
+ */
+const RootRoute: React.FC = () => {
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 bg-background">
+        <div className="space-y-4 max-w-sm w-full">
+          <Skeleton className="h-8 w-40 mx-auto rounded-lg" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    if (user?.role === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <LandingPage />;
+};
+
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
+      {/* Root Landing Route */}
+      <Route path="/" element={<RootRoute />} />
+
       {/* Public Documentation Route */}
       <Route path="/docs" element={<ApiDocsPage />} />
 
@@ -179,9 +215,8 @@ export const AppRoutes: React.FC = () => {
         </Route>
       </Route>
 
-      {/* Root & Fallback Redirects */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Fallback Redirects */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
